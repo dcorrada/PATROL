@@ -11,22 +11,33 @@ Questo script gestice il DB di Patrol
 Vedi GIT
 #>
 
-# header
+# faccio in modo di elevare l'esecuzione dello script con privilegi di admin
+$currentUser = New-Object Security.Principal.WindowsPrincipal $([Security.Principal.WindowsIdentity]::GetCurrent())
+$testadmin = $currentUser.IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
+if ($testadmin -eq $false) {
+    Start-Process powershell.exe -Verb RunAs -ArgumentList ('-noprofile -file "{0}" -elevated' -f ($myinvocation.MyCommand.Definition))
+    exit $LASTEXITCODE
+}
+
+# recupero il percorso di installazione
+$fullname = $MyInvocation.MyCommand.Path
+$fullname -match "([a-zA-Z_\-\.\\\s0-9:]+)\\UpdateDB\.ps1$" > $null
+$repopath = $matches[1]
+
+# setto le policy di esecuzione dello script
+$ErrorActionPreference= 'SilentlyContinue'
+Set-ExecutionPolicy -Scope LocalMachine -ExecutionPolicy Bypass -Force
 $ErrorActionPreference= 'Inquire'
+
+# roba di grafica da inizializzare
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 Add-Type -AssemblyName PresentationFramework
-$repopath = '[Percorso_di_installazione]'
 
-# setto le policy di esecuzione degli script
-$ErrorActionPreference= 'SilentlyContinue'
-Set-ExecutionPolicy -Scope LocalMachine -ExecutionPolicy Bypass -Force
-Write-Host "ExecutionPolicy Bypass" -fore Green
-$ErrorActionPreference= 'Inquire'
-
-Import-Module -Name "$repopath\PATROL\Moduli\Forms.psm1"
-Import-Module -Name "$repopath\PATROL\Moduli\Patrol.psm1"
-Import-Module -Name "$repopath\PATROL\Moduli\FileCryptography.psm1"
+# carico moduli
+Import-Module -Name "$repopath\Moduli\Forms.psm1"
+Import-Module -Name "$repopath\Moduli\Patrol.psm1"
+Import-Module -Name "$repopath\Moduli\FileCryptography.psm1"
 
 function RetryButton {
     param ($form, $x, $y, $text)
@@ -82,8 +93,8 @@ do {
 
             $string = $scriptBox.Text + ';' + $usrBox.Text
 
-            Copy-Item -Path "$repopath\PATROL\PatrolDB.csv.AES" -Destination "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
-            $stringa = Get-Content '$repopath\PATROL\crypto.key'
+            Copy-Item -Path "$repopath\PatrolDB.csv.AES" -Destination "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
+            $stringa = Get-Content "$repopath\crypto.key"
             $key = ConvertTo-SecureString $stringa -AsPlainText -Force
             Unprotect-File "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES" -Algorithm AES -Key $key -RemoveSource
 
@@ -94,7 +105,7 @@ do {
             Start-Sleep 5
             $ErrorActionPreference = 'Stop'
             Try {
-                New-PSDrive -Name P -PSProvider FileSystem -Root "$repopath\PATROL" -Credential $logo > $null
+                New-PSDrive -Name P -PSProvider FileSystem -Root $repopath -Credential $logo > $null
             }
             Catch { 
                 $errormsg = [System.Windows.MessageBox]::Show("Impossibile accedere alla cartella remota, controllare le credenziali",'ATTENZIONE','Ok','Error')
@@ -114,8 +125,8 @@ do {
         }
 
         if ($check_user.Checked) {
-            Copy-Item -Path "$repopath\PATROL\PatrolDB.csv.AES" -Destination "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
-            $stringa = Get-Content '$repopath\PATROL\crypto.key'
+            Copy-Item -Path "$repopath\PatrolDB.csv.AES" -Destination "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
+            $stringa = Get-Content "$repopath\crypto.key"
             $key = ConvertTo-SecureString $stringa -AsPlainText -Force
             Unprotect-File "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES" -Algorithm AES -Key $key -RemoveSource
 
@@ -162,8 +173,8 @@ do {
         }
 
         if ($check_script.Checked) {
-            Copy-Item -Path "$repopath\PATROL\PatrolDB.csv.AES" -Destination "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
-            $stringa = Get-Content '$repopath\PATROL\crypto.key'
+            Copy-Item -Path "$repopath\PatrolDB.csv.AES" -Destination "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
+            $stringa = Get-Content "$repopath\crypto.key"
             $key = ConvertTo-SecureString $stringa -AsPlainText -Force
             Unprotect-File "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES" -Algorithm AES -Key $key -RemoveSource
 
@@ -217,7 +228,7 @@ do {
             Start-Sleep 5
             $ErrorActionPreference = 'Stop'
             Try {
-                New-PSDrive -Name P -PSProvider FileSystem -Root "$repopath\PATROL" -Credential $logo > $null
+                New-PSDrive -Name P -PSProvider FileSystem -Root $repopath -Credential $logo > $null
             }
             Catch { 
                 $errormsg = [System.Windows.MessageBox]::Show("Impossibile accedere alla cartella remota, controllare le credenziali",'ATTENZIONE','Ok','Error')
@@ -238,7 +249,7 @@ do {
             Remove-Item -Path "P:\PatrolDB.csv.AES"
             Copy-Item -Path "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES" -Destination "P:\PatrolDB.csv.AES"
             Remove-Item -Path "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
-            [System.Windows.MessageBox]::Show("DB importato come $repopath\PATROL\PatrolDB.csv.AES",'PATROL DB','Ok','Info') > $null
+            [System.Windows.MessageBox]::Show("DB importato come $repopath\PatrolDB.csv.AES",'PATROL DB','Ok','Info') > $null
     
             # mi disconnetto da \\itmilitgroup
             Remove-PSDrive -Name P
@@ -246,8 +257,8 @@ do {
     
         if ($esporta.Checked) {
             Write-Host "Esporto il database..."
-            Copy-Item -Path "$repopath\PATROL\PatrolDB.csv.AES" -Destination "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
-            $stringa = Get-Content '$repopath\PATROL\crypto.key'
+            Copy-Item -Path "$repopath\PatrolDB.csv.AES" -Destination "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
+            $stringa = Get-Content "$repopath\crypto.key"
             $key = ConvertTo-SecureString $stringa -AsPlainText -Force
             Unprotect-File "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES" -Algorithm AES -Key $key -RemoveSource
     
