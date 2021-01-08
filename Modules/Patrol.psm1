@@ -6,7 +6,7 @@
     Add-Type -AssemblyName PresentationFramework
     Import-Module -Name "$workdir\Modules\Forms.psm1"
 
-    # get AD credentials
+    # get credentials
     $form_PWD = New-Object System.Windows.Forms.Form
     $form_PWD.Text = "LOGIN"
     $form_PWD.Size = "400,250"
@@ -49,8 +49,10 @@
     $usr = $textBox.Text
     $pwd = ConvertTo-SecureString $MaskedTextBox.Text -AsPlainText -Force
     $credit = New-Object System.Management.Automation.PSCredential($usr, $pwd)
-
-    if ((new-object directoryservices.directoryentry "",$textBox.Text,$MaskedTextBox.Text).psbase.name -ne $null) {
+    
+    [reflection.assembly]::LoadWithPartialName("System.DirectoryServices.AccountManagement") > $null
+    $principalContext = [System.DirectoryServices.AccountManagement.PrincipalContext]::new([System.DirectoryServices.AccountManagement.ContextType]'Machine',$env:COMPUTERNAME)
+    if ($principalContext.ValidateCredentials($textBox.Text,$MaskedTextBox.Text)) { # check credentials
         # load the module to cript/decript DB
         Import-Module -Name "$workdir\Modules\FileCryptography.psm1"
 
