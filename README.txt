@@ -12,7 +12,7 @@ In order to protect your script using PATROL access grants:
 
 	# grant access
 	Import-Module -Name "[installation_path]\Modules\Patrol.psm1"
-	$credential = Patrol -scriptname [script_name]
+	$credential = Patrol -workdir [installation_path] -scriptname [script_name]
    
    The "Patrol" function return $credential object, containg username/password credentials
    Password is encrypted accordoing to SecureString method 

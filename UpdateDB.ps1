@@ -46,7 +46,7 @@ function RetryButton {
     $form.Controls.Add($OKButton)
 }
 
-$logo = Patrol -scriptname UpdateDB
+$logo = Patrol -workdir $repopath -scriptname UpdateDB
 
 # dialog box
 do {

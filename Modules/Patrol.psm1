@@ -1,10 +1,5 @@
 ﻿function Patrol {
-    param ($scriptname)
-
-    # get installation path
-    $fullname = $MyInvocation.MyCommand.Path
-    $fullname -match "([a-zA-Z_\-\.\\\s0-9:]+)\\UpdateDB\.ps1$" > $null
-    $workdir = $matches[1]
+    param ($workdir, $scriptname)
 
     Add-Type -AssemblyName System.Windows.Forms
     Add-Type -AssemblyName System.Drawing
