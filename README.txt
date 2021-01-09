@@ -5,7 +5,7 @@ Once PATROL is installed launch the script create_DB.ps1. Two files will be crea
 
 
 N.B.: PATROL check either local and domain credentials,
-in the second case specify the username as "domain\username".
+in the second case check the checkbox "Domain account".
 
 In order to protect your script using PATROL access grants:
 

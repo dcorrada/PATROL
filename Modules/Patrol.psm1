@@ -9,7 +9,7 @@
     # get credentials
     $form_PWD = New-Object System.Windows.Forms.Form
     $form_PWD.Text = "LOGIN"
-    $form_PWD.Size = "400,250"
+    $form_PWD.Size = "400,270"
     $form_PWD.StartPosition = 'CenterScreen'
     $form_PWD.Topmost = $true
     $label = New-Object System.Windows.Forms.Label
@@ -38,21 +38,36 @@
     $MaskedTextBox.Size = New-Object System.Drawing.Size(150,20)
     $form_PWD.Add_Shown({$MaskedTextBox.Select()})
     $form_PWD.Controls.Add($MaskedTextBox)
+    $CheckBox = New-Object System.Windows.Forms.CheckBox
+    $CheckBox.Location = New-Object System.Drawing.Point(20,120)
+    $CheckBox.Size = New-Object System.Drawing.Size(200,20)
+    $CheckBox.Checked = $false
+    $CheckBox.Text = "Domain Account"
+    $form_PWD.Add_Shown({$CheckBox.Select()})
+    $form_PWD.Controls.Add($CheckBox)
     $OKButton = New-Object System.Windows.Forms.Button
-    $OKButton.Location = "100,120"
+    $OKButton.Location = "100,160"
     $OKButton.Size = '100,30'
     $OKButton.Text = "Ok"
     $OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
     $form_PWD.AcceptButton = $OKButton
     $form_PWD.Controls.Add($OKButton)
     $result = $form_PWD.ShowDialog()
-    $usr = $textBox.Text
+
+    # get domain name
+    $thiscomputer = Get-WmiObject -Class Win32_ComputerSystem
+  
+    if ($CheckBox.Checked) {
+        $usr = $thiscomputer.Domain + '\' + $textBox.Text
+    } else {
+        $usr = $textBox.Text
+    }
     $pwd = ConvertTo-SecureString $MaskedTextBox.Text -AsPlainText -Force
     $credit = New-Object System.Management.Automation.PSCredential($usr, $pwd)
     
     [reflection.assembly]::LoadWithPartialName("System.DirectoryServices.AccountManagement") > $null
     $principalContext = [System.DirectoryServices.AccountManagement.PrincipalContext]::new([System.DirectoryServices.AccountManagement.ContextType]'Machine',$env:COMPUTERNAME)
-    if ($principalContext.ValidateCredentials($textBox.Text,$MaskedTextBox.Text)) { # check credentials
+    if ($principalContext.ValidateCredentials($usr,$MaskedTextBox.Text)) { # check credentials
         # load the module to cript/decript DB
         Import-Module -Name "$workdir\Modules\FileCryptography.psm1"
 
