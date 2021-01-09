@@ -56,18 +56,19 @@
 
     # get domain name
     $thiscomputer = Get-WmiObject -Class Win32_ComputerSystem
-  
+    
     if ($CheckBox.Checked) {
-        $usr = $thiscomputer.Domain + '\' + $textBox.Text
+        $fullname = $thiscomputer.Domain + '\' + $textBox.Text
     } else {
-        $usr = $textBox.Text
+        $fullname = $textBox.Text
     }
+    $usr = $textBox.Text
     $pwd = ConvertTo-SecureString $MaskedTextBox.Text -AsPlainText -Force
     $credit = New-Object System.Management.Automation.PSCredential($usr, $pwd)
     
     [reflection.assembly]::LoadWithPartialName("System.DirectoryServices.AccountManagement") > $null
     $principalContext = [System.DirectoryServices.AccountManagement.PrincipalContext]::new([System.DirectoryServices.AccountManagement.ContextType]'Machine',$env:COMPUTERNAME)
-    if ($principalContext.ValidateCredentials($usr,$MaskedTextBox.Text)) { # check credentials
+    if ($principalContext.ValidateCredentials($fullname,$MaskedTextBox.Text)) { # check credentials
         # load the module to cript/decript DB
         Import-Module -Name "$workdir\Modules\FileCryptography.psm1"
 
