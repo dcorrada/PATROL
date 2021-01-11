@@ -6,14 +6,6 @@ Author....: Dario CORRADA
 This script manage Patrol DB
 #>
 
-# elevate script execution with admin privileges
-$currentUser = New-Object Security.Principal.WindowsPrincipal $([Security.Principal.WindowsIdentity]::GetCurrent())
-$testadmin = $currentUser.IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
-if ($testadmin -eq $false) {
-    Start-Process powershell.exe -Verb RunAs -ArgumentList ('-noprofile -file "{0}" -elevated' -f ($myinvocation.MyCommand.Definition))
-    exit $LASTEXITCODE
-}
-
 # setting installation path
 $workdir = 'patrolinstallpath'
 
