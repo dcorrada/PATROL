@@ -1,6 +1,6 @@
 
 
-# sostituire patrolcryptokey e patrolinstallpath
+# sostituire patrolcryptokey e  patrolinstallpath
 
 
 # This script creates a crypto key and related encrypted DB
