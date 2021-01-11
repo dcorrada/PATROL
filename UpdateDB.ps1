@@ -29,7 +29,6 @@ Add-Type -AssemblyName PresentationFramework
 
 # import modules
 Import-Module -Name "$workdir\Modules\Forms.psm1"
-Import-Module -Name "$workdir\Modules\Patrol.psm1"
 Import-Module -Name "$workdir\Modules\FileCryptography.psm1"
 
 function RetryButton {
@@ -45,11 +44,19 @@ function RetryButton {
 }
 
 # run patrol agent
-$stdout = patrolinstallpath\Patrol.exe nomescript
+$stdout = patrolinstallpath\Patrol.exe UpdateDB
 $usr = $stdout[0]
 $pwd_clear = $stdout[1]
+$status = $stdout[2]
 $pwd = ConvertTo-SecureString $pwd_clear -AsPlainText -Force
 $logo = New-Object System.Management.Automation.PSCredential($usr, $pwd)
+if ($status -ne "granted") {
+    Write-Host -ForegroundColor RED "Access for $usr $status"
+    Pause
+    Exit
+} else {
+    Write-Host -ForegroundColor GREEN "Access for $usr $status"
+}  
 
 # dialog box
 do {

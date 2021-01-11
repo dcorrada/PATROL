@@ -115,19 +115,16 @@ if ($principalContext.ValidateCredentials($fullname,$MaskedTextBox.Text)) { # ch
     Remove-Item -Path "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv"
 
     if ($allowed -contains 'everyone') { 
-        Write-Host -ForegroundColor Cyan "Patrol disabled"
         $status = 'granted'
     } elseif ($allowed -contains $usr) {
-        Write-Host -ForegroundColor Green "Patrol unlocked"
         $status = 'granted'
     } else {
-        Write-Host -ForegroundColor Red "Patrol locked"
         $status = 'blocked'
     }        
     
 } else {
-    [System.Windows.MessageBox]::Show("Password o username uncorrect",'ERROR','Ok','Error')
-    Exit
+    [System.Windows.MessageBox]::Show("Password o username uncorrect",'ERROR','Ok','Error') > $null
+    $status = 'blocked'
 }
 
 # write access record
@@ -145,13 +142,8 @@ $new_record = @(
 $new_string = [system.String]::Join(";", $new_record)
 $new_string | Out-File "Z:\ACCESSI_PATROL.csv" -Encoding ASCII -Append
 
-
-if ($status -eq 'blocked') {
-    [System.Windows.MessageBox]::Show("User is not enabled to run this script",'WARNING','Ok','Error')
-    Exit
-}
-
 Remove-PSDrive -Name Z
 
 Write-Host $usr
 Write-Host $pwd_clear
+Write-Host $status
