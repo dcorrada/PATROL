@@ -2,7 +2,7 @@
 
 <#
 Name......: Patrol.ps1
-Version...: 21.1.1
+Version...: 21.1.a
 Author....: Dario CORRADA
 
 This script is the agent that check granted access

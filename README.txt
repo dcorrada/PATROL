@@ -1,7 +1,7 @@
 ###############################################################################
-DISCLAIMER: In order to use this tool all the scripts patched need to be executed
-elevated with admin privileges. For the source scripts you can add these lines 
-at the header of your own code (example for PowerShell scripts):
+DISCLAIMER: In order to use this tool, it's better that all the scripts patched
+will be executed elevated with admin privileges. For the source scripts you can
+add these lines at the header of your own code (example for PowerShell scripts):
 
 # elevate script execution with admin privileges
 $currentUser = New-Object Security.Principal.WindowsPrincipal `
@@ -57,3 +57,5 @@ the individual grants for each script.
 
 	https://gallery.technet.microsoft.com/scriptcenter/PS2EXE-Convert-PowerShell-9e4e07f1
 
+N.B.: PATROL check either local and domain credentials, in the second case check
+the checkbox "Domain account".
