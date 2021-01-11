@@ -97,27 +97,12 @@ do {
 
             $string | Out-File "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv" -Encoding ASCII -Append
 
-            net stop workstation /y > $null
-            net start workstation > $null
-            Start-Sleep 5
-            $ErrorActionPreference = 'Stop'
-            Try {
-                New-PSDrive -Name P -PSProvider FileSystem -Root $workdir -Credential $logo > $null
-            }
-            Catch { 
-                $errormsg = [System.Windows.MessageBox]::Show("Unable to access, check your credentials",'ERROR','Ok','Error')
-            }
-            $ErrorActionPreference = 'Inquire'
-    
             $stringa = 'patrolcryptokey'
             $key = ConvertTo-SecureString $stringa -AsPlainText -Force
             Protect-File "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv" -Algorithm AES -Key $key -RemoveSource
-            Remove-Item -Path "P:\PatrolDB.csv.AES"
-            Copy-Item -Path "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES" -Destination "P:\PatrolDB.csv.AES"
+            Remove-Item -Path "$orkdir\PatrolDB.csv.AES"
+            Copy-Item -Path "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES" -Destination "$workdir\PatrolDB.csv.AES"
             Remove-Item -Path "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
-    
-            Remove-PSDrive -Name P
-
         }
 
         if ($check_user.Checked) {
@@ -218,19 +203,7 @@ do {
 
         if ($importa.Checked) {
             Write-Host "Import database..."
-
-            net stop workstation /y > $null
-            net start workstation > $null
-            Start-Sleep 5
-            $ErrorActionPreference = 'Stop'
-            Try {
-                New-PSDrive -Name P -PSProvider FileSystem -Root $workdir -Credential $logo > $null
-            }
-            Catch { 
-                $errormsg = [System.Windows.MessageBox]::Show("Unable to access, check your credentials",'ERROR','Ok','Error')
-            }
-            $ErrorActionPreference = 'Inquire'
-            
+           
             $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
             $OpenFileDialog.initialDirectory = "C:\Users\$env:USERNAME\Desktop"
             $OpenFileDialog.filter = "Comma separated value (*.csv)| *.csv"
@@ -241,12 +214,11 @@ do {
             $stringa = 'patrolcryptokey'
             $key = ConvertTo-SecureString $stringa -AsPlainText -Force
             Protect-File "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv" -Algorithm AES -Key $key -RemoveSource
-            Remove-Item -Path "P:\PatrolDB.csv.AES"
-            Copy-Item -Path "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES" -Destination "P:\PatrolDB.csv.AES"
+            Remove-Item -Path "$workdir\PatrolDB.csv.AES"
+            Copy-Item -Path "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES" -Destination "$workdir\PatrolDB.csv.AES"
             Remove-Item -Path "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
-            [System.Windows.MessageBox]::Show("DB importato come $workdir\PatrolDB.csv.AES",'PATROL DB','Ok','Info') > $null
+            [System.Windows.MessageBox]::Show("DB imported succesfully",'PATROL DB','Ok','Info') > $null
     
-            Remove-PSDrive -Name P
         }
     
         if ($esporta.Checked) {

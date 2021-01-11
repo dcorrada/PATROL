@@ -120,10 +120,6 @@ if ($principalContext.ValidateCredentials($fullname,$MaskedTextBox.Text)) { # ch
 }
 
 # write access record
-net stop workstation /y > $null
-net start workstation > $null
-Start-Sleep 3
-New-PSDrive -Name Z -PSProvider FileSystem -Root $workdir -Credential $credit > $null
 $rec_data = Get-Date -UFormat "%d/%m/%Y-%H:%M"
 $new_record = @(
     $rec_data,
@@ -132,9 +128,7 @@ $new_record = @(
     $status
 )
 $new_string = [system.String]::Join(";", $new_record)
-$new_string | Out-File "Z:\ACCESSI_PATROL.csv" -Encoding ASCII -Append
-
-Remove-PSDrive -Name Z
+$new_string | Out-File "$workdir\ACCESSI_PATROL.csv" -Encoding ASCII -Append
 
 Write-Host $usr
 Write-Host $pwd_clear
