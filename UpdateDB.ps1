@@ -1,9 +1,9 @@
 <#
 Name......: UpdateDB.ps1
-Version...: 20.1.1
+Version...: 21.1.1
 Author....: Dario CORRADA
 
-Questo script manage Patrol DB
+This script manage Patrol DB
 #>
 
 # elevate script execution with admin privileges
@@ -14,10 +14,8 @@ if ($testadmin -eq $false) {
     exit $LASTEXITCODE
 }
 
-# retrieve installation path
-$fullname = $MyInvocation.MyCommand.Path
-$fullname -match "([a-zA-Z_\-\.\\\s0-9:]+)\\UpdateDB\.ps1$" > $null
-$repopath = $matches[1]
+# setting installation path
+$workdir = 'patrolinstallpath'
 
 # setting execution policy
 $ErrorActionPreference= 'SilentlyContinue'
@@ -30,9 +28,9 @@ Add-Type -AssemblyName System.Drawing
 Add-Type -AssemblyName PresentationFramework
 
 # import modules
-Import-Module -Name "$repopath\Modules\Forms.psm1"
-Import-Module -Name "$repopath\Modules\Patrol.psm1"
-Import-Module -Name "$repopath\Modules\FileCryptography.psm1"
+Import-Module -Name "$workdir\Modules\Forms.psm1"
+Import-Module -Name "$workdir\Modules\Patrol.psm1"
+Import-Module -Name "$workdir\Modules\FileCryptography.psm1"
 
 function RetryButton {
     param ($form, $x, $y, $text)
@@ -46,7 +44,12 @@ function RetryButton {
     $form.Controls.Add($OKButton)
 }
 
-$logo = Patrol -workdir $repopath -scriptname UpdateDB
+# run patrol agent
+$stdout = patrolinstallpath\Patrol.exe nomescript
+$usr = $stdout[0]
+$pwd_clear = $stdout[1]
+$pwd = ConvertTo-SecureString $pwd_clear -AsPlainText -Force
+$logo = New-Object System.Management.Automation.PSCredential($usr, $pwd)
 
 # dialog box
 do {
@@ -88,8 +91,8 @@ do {
 
             $string = $scriptBox.Text + ';' + $usrBox.Text
 
-            Copy-Item -Path "$repopath\PatrolDB.csv.AES" -Destination "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
-            $stringa = Get-Content "$repopath\crypto.key"
+            Copy-Item -Path "$workdir\PatrolDB.csv.AES" -Destination "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
+            $stringa = 'patrolcryptokey'
             $key = ConvertTo-SecureString $stringa -AsPlainText -Force
             Unprotect-File "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES" -Algorithm AES -Key $key -RemoveSource
 
@@ -100,14 +103,14 @@ do {
             Start-Sleep 5
             $ErrorActionPreference = 'Stop'
             Try {
-                New-PSDrive -Name P -PSProvider FileSystem -Root $repopath -Credential $logo > $null
+                New-PSDrive -Name P -PSProvider FileSystem -Root $workdir -Credential $logo > $null
             }
             Catch { 
                 $errormsg = [System.Windows.MessageBox]::Show("Unable to access, check your credentials",'ERROR','Ok','Error')
             }
             $ErrorActionPreference = 'Inquire'
     
-            $stringa = Get-Content 'P:\crypto.key'
+            $stringa = 'patrolcryptokey'
             $key = ConvertTo-SecureString $stringa -AsPlainText -Force
             Protect-File "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv" -Algorithm AES -Key $key -RemoveSource
             Remove-Item -Path "P:\PatrolDB.csv.AES"
@@ -119,8 +122,8 @@ do {
         }
 
         if ($check_user.Checked) {
-            Copy-Item -Path "$repopath\PatrolDB.csv.AES" -Destination "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
-            $stringa = Get-Content "$repopath\crypto.key"
+            Copy-Item -Path "$workdir\PatrolDB.csv.AES" -Destination "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
+            $stringa = 'patrolcryptokey'
             $key = ConvertTo-SecureString $stringa -AsPlainText -Force
             Unprotect-File "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES" -Algorithm AES -Key $key -RemoveSource
 
@@ -167,8 +170,8 @@ do {
         }
 
         if ($check_script.Checked) {
-            Copy-Item -Path "$repopath\PatrolDB.csv.AES" -Destination "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
-            $stringa = Get-Content "$repopath\crypto.key"
+            Copy-Item -Path "$workdir\PatrolDB.csv.AES" -Destination "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
+            $stringa = 'patrolcryptokey'
             $key = ConvertTo-SecureString $stringa -AsPlainText -Force
             Unprotect-File "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES" -Algorithm AES -Key $key -RemoveSource
 
@@ -222,7 +225,7 @@ do {
             Start-Sleep 5
             $ErrorActionPreference = 'Stop'
             Try {
-                New-PSDrive -Name P -PSProvider FileSystem -Root $repopath -Credential $logo > $null
+                New-PSDrive -Name P -PSProvider FileSystem -Root $workdir -Credential $logo > $null
             }
             Catch { 
                 $errormsg = [System.Windows.MessageBox]::Show("Unable to access, check your credentials",'ERROR','Ok','Error')
@@ -236,21 +239,21 @@ do {
             $infile = $OpenFileDialog.filename
     
             Copy-Item -Path $infile -Destination "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv"
-            $stringa = Get-Content 'P:\crypto.key'
+            $stringa = 'patrolcryptokey'
             $key = ConvertTo-SecureString $stringa -AsPlainText -Force
             Protect-File "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv" -Algorithm AES -Key $key -RemoveSource
             Remove-Item -Path "P:\PatrolDB.csv.AES"
             Copy-Item -Path "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES" -Destination "P:\PatrolDB.csv.AES"
             Remove-Item -Path "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
-            [System.Windows.MessageBox]::Show("DB importato come $repopath\PatrolDB.csv.AES",'PATROL DB','Ok','Info') > $null
+            [System.Windows.MessageBox]::Show("DB importato come $workdir\PatrolDB.csv.AES",'PATROL DB','Ok','Info') > $null
     
             Remove-PSDrive -Name P
         }
     
         if ($esporta.Checked) {
             Write-Host "Export database..."
-            Copy-Item -Path "$repopath\PatrolDB.csv.AES" -Destination "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
-            $stringa = Get-Content "$repopath\crypto.key"
+            Copy-Item -Path "$workdir\PatrolDB.csv.AES" -Destination "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
+            $stringa = 'patrolcryptokey'
             $key = ConvertTo-SecureString $stringa -AsPlainText -Force
             Unprotect-File "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES" -Algorithm AES -Key $key -RemoveSource
     
