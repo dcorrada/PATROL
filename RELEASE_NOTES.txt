@@ -1,0 +1,5 @@
+*** v. 21.1.a ***
+- Accessing login either with local or domain account
+- Embedded encryption of the DB
+- Improved access to shared folders
+- Scripts compiled with PS2EXE-GUI v0.5.0.14
