@@ -1,6 +1,6 @@
 <#
 Name......: UpdateDB.ps1
-Version...: 21.1.a
+Version...: 21.1.b
 Author....: Dario CORRADA
 
 This script manage Patrol DB

@@ -1,3 +1,9 @@
+[TODO LIST]
++ Allow sending email alerts from Microsoft accounts (ie Exchange servers)
+
+*** v. 21.1.b ***
+- Sending email alerts
+
 *** v. 21.1.a ***
 - Accessing login either with local or domain account
 - Embedded encryption of the DB

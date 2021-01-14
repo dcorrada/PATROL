@@ -1,3 +1,0 @@
-*** aggiungere l'invio di log via mail ***
-+ guardare il cmdlet Send-MailMessage
-+ guardare la variabile $PSEmailServer per configurare il server SMTP

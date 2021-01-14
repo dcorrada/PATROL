@@ -2,7 +2,7 @@
 
 <#
 Name......: Patrol.ps1
-Version...: 21.1.a
+Version...: 21.1.b
 Author....: Dario CORRADA
 
 This script is the agent that check granted access
@@ -129,6 +129,36 @@ $new_record = @(
 )
 $new_string = [system.String]::Join(";", $new_record)
 $new_string | Out-File "$workdir\ACCESSI_PATROL.csv" -Encoding ASCII -Append
+
+# sending mail alert
+$sendmail = $false
+$smtp = 'PATROLsmtp'
+$port = 'PATROLport'
+$ssl = $false
+$usrmail = 'PATROLusrmail'
+$pwdmail = 'PATROLpwdmail'
+$subject = 'PATROL alert'
+$body = "On $rec_data $usr have attempted to run $scriptname, and he was blocked!"
+if ($sendmail) {
+    if ($status -eq 'blocked') {
+        $ErrorActionPreference= 'Stop'
+        Try {
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+            $SMTPClient = New-Object Net.Mail.SmtpClient($smtp, $port)
+            if ($ssl) {
+                $SMTPClient.EnableSsl = $true
+            }
+            $SMTPClient.Credentials = New-Object System.Net.NetworkCredential($usrmail, $pwdmail);
+            $SMTPClient.Send($usrmail, $usrmail, $subject, $body)
+            $ErrorActionPreference= 'Inquire'
+        }
+        Catch {
+            # Write-Output "`nError: $($error[0].ToString())"
+            [System.Windows.MessageBox]::Show("Sending alert email failed",'WARNING','Ok','Warning') > $null
+        }
+    }
+}
+
 
 Write-Host $usr
 Write-Host $pwd_clear
