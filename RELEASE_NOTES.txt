@@ -1,5 +1,5 @@
 [TODO LIST]
-+ Allow sending email alerts from Microsoft accounts (ie Exchange servers)
++ Allow sending email alerts from Microsoft accounts using Exchange server
 
 *** v. 21.1.b ***
 - Sending email alerts

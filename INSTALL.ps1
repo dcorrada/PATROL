@@ -1,6 +1,6 @@
 <#
 Name......: INSTALL.ps1
-Version...: 21.1.1
+Version...: 21.1.b
 Author....: Dario CORRADA
 
 This script will install PATROL
