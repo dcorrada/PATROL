@@ -86,6 +86,7 @@ $usr = $textBox.Text
 $pwd_clear = $MaskedTextBox.Text
 $pwd = ConvertTo-SecureString $MaskedTextBox.Text -AsPlainText -Force
 $credit = New-Object System.Management.Automation.PSCredential($usr, $pwd)
+$accessdesc = 'null'
     
 [reflection.assembly]::LoadWithPartialName("System.DirectoryServices.AccountManagement") > $null
 $principalContext = [System.DirectoryServices.AccountManagement.PrincipalContext]::new([System.DirectoryServices.AccountManagement.ContextType]'Machine',$env:COMPUTERNAME)
@@ -112,11 +113,13 @@ if ($principalContext.ValidateCredentials($fullname,$MaskedTextBox.Text)) { # ch
         $status = 'granted'
     } else {
         $status = 'blocked'
+        $accessdesc = 'no grant found'
     }        
     
 } else {
     [System.Windows.MessageBox]::Show("Password o username uncorrect",'ERROR','Ok','Error') > $null
     $status = 'blocked'
+    $accessdesc = 'usr/pwd incorrect'
 }
 
 # write access record
@@ -125,7 +128,8 @@ $new_record = @(
     $rec_data,
     $usr,
     $scriptname,
-    $status
+    $status,
+    $accessdesc
 )
 $new_string = [system.String]::Join(";", $new_record)
 $new_string | Out-File "$workdir\ACCESSI_PATROL.csv" -Encoding ASCII -Append
@@ -137,8 +141,14 @@ $port = 'PATROLport'
 $ssl = $false
 $usrmail = 'PATROLusrmail'
 $pwdmail = 'PATROLpwdmail'
-$subject = 'PATROL alert'
-$body = "On $rec_data $usr have attempted to run $scriptname, and he was blocked!"
+
+$mailalert = New-Object System.Net.Mail.MailMessage
+$mailalert.From = $usrmail
+$mailalert.To.Add($usrmail)
+$mailalert.Subject = 'PATROL alert'
+$mailalert.Body = "On $rec_data $usr have attempted to run $scriptname, and he was blocked!"
+$mailalert.Attachments = "$workdir\ACCESSI_PATROL.csv"
+
 if ($sendmail) {
     if ($status -eq 'blocked') {
         $ErrorActionPreference= 'Stop'
@@ -149,7 +159,7 @@ if ($sendmail) {
                 $SMTPClient.EnableSsl = $true
             }
             $SMTPClient.Credentials = New-Object System.Net.NetworkCredential($usrmail, $pwdmail);
-            $SMTPClient.Send($usrmail, $usrmail, $subject, $body)
+            $SMTPClient.Send($mailalert)
             $ErrorActionPreference= 'Inquire'
         }
         Catch {

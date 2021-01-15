@@ -175,7 +175,7 @@ $securekey = ConvertTo-SecureString $cryptokey -AsPlainText -Force
 Protect-File "$tmppath\PatrolDB.csv" -Algorithm AES -Key $securekey
 
 # Creating access register
-"DATA;USERNAME;SCRIPT;STATUS" | Out-File "$tmppath\ACCESSI_PATROL.csv" -Encoding ASCII -Append
+"DATA;USERNAME;SCRIPT;STATUS;NOTES" | Out-File "$tmppath\ACCESSI_PATROL.csv" -Encoding ASCII -Append
 
 # Copying to installation path
 if (!(Test-Path $destpath)) {

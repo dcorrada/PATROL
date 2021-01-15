@@ -3,6 +3,7 @@
 
 *** v. 21.1.b ***
 - Sending email alerts
+- Added log informations
 
 *** v. 21.1.a ***
 - Accessing login either with local or domain account
