@@ -147,7 +147,7 @@ $mailalert.From = $usrmail
 $mailalert.To.Add($usrmail)
 $mailalert.Subject = 'PATROL alert'
 $mailalert.Body = "On $rec_data $usr have attempted to run $scriptname, and he was blocked!"
-$mailalert.Attachments = "$workdir\ACCESSI_PATROL.csv"
+$mailalert.Attachments.Add("$workdir\ACCESSI_PATROL.csv")
 
 if ($sendmail) {
     if ($status -eq 'blocked') {
