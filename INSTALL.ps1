@@ -147,12 +147,13 @@ foreach ($infile in $filelist) {
 }
 if ($answ -eq "Yes") {
     $fullname = $tmppath + '\Patrol.ps1'
+    ((Get-Content -path $fullname -Raw) -replace 'PATROLsend','ok') | Set-Content -Path $fullname
     ((Get-Content -path $fullname -Raw) -replace 'PATROLusrmail',$usrmail) | Set-Content -Path $fullname
     ((Get-Content -path $fullname -Raw) -replace 'PATROLpwdmail',$pwdmail) | Set-Content -Path $fullname
     ((Get-Content -path $fullname -Raw) -replace 'PATROLsmtp',$smtpsrv) | Set-Content -Path $fullname
     ((Get-Content -path $fullname -Raw) -replace 'PATROLport',$smtpport) | Set-Content -Path $fullname
     if ($smtpssl) {
-        ((Get-Content -path $fullname -Raw) -replace '$ssl = $false','$ssl = $true') | Set-Content -Path $fullname
+        ((Get-Content -path $fullname -Raw) -replace 'PATROLssl','ok') | Set-Content -Path $fullname
     }
 }
 

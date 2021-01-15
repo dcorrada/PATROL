@@ -135,32 +135,35 @@ $new_string = [system.String]::Join(";", $new_record)
 $new_string | Out-File "$workdir\ACCESSI_PATROL.csv" -Encoding ASCII -Append
 
 # sending mail alert
-$sendmail = $false
+$sendmail = 'PATROLsend'
 $smtp = 'PATROLsmtp'
 $port = 'PATROLport'
-$ssl = $false
+$ssl = 'PATROLssl'
 $usrmail = 'PATROLusrmail'
 $pwdmail = 'PATROLpwdmail'
 
-$mailalert = New-Object System.Net.Mail.MailMessage
-$mailalert.From = $usrmail
-$mailalert.To.Add($usrmail)
-$mailalert.Subject = 'PATROL alert'
-$mailalert.Body = "On $rec_data $usr have attempted to run $scriptname, and he was blocked!"
-$mailalert.Attachments.Add("$workdir\ACCESSI_PATROL.csv")
+if ($sendmail -eq 'ok') {
+    $mailalert = New-Object System.Net.Mail.MailMessage
+    $mailalert.From = $usrmail
+    $mailalert.To.Add($usrmail)
+    $mailalert.Subject = 'PATROL alert'
+    $mailalert.Body = "On $rec_data $usr have attempted to run $scriptname, and he was blocked!"
+    $mailalert.Attachments.Add("$workdir\ACCESSI_PATROL.csv")
 
-if ($sendmail) {
     if ($status -eq 'blocked') {
         $ErrorActionPreference= 'Stop'
         Try {
             [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
             $SMTPClient = New-Object Net.Mail.SmtpClient($smtp, $port)
-            if ($ssl) {
+            if ($ssl -eq 'ok') {
                 $SMTPClient.EnableSsl = $true
             }
             $SMTPClient.Credentials = New-Object System.Net.NetworkCredential($usrmail, $pwdmail);
             $SMTPClient.Send($mailalert)
             $ErrorActionPreference= 'Inquire'
+
+            # test
+            # [System.Windows.MessageBox]::Show("Mail spedita da $usrmail/$pwdmail su $smtp su $port",'WARNING','Ok','Warning') > $null
         }
         Catch {
             # Write-Output "`nError: $($error[0].ToString())"
