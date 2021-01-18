@@ -141,11 +141,14 @@ $port = 'PATROLport'
 $ssl = 'PATROLssl'
 $usrmail = 'PATROLusrmail'
 $pwdmail = 'PATROLpwdmail'
+$recipients = 'PATROLrecipients'
 
 if ($sendmail -eq 'ok') {
     $mailalert = New-Object System.Net.Mail.MailMessage
     $mailalert.From = $usrmail
-    $mailalert.To.Add($usrmail)
+    foreach ($item in $recipients.Split(';')) {
+        $mailalert.To.Add($item)
+    }
     $mailalert.Subject = 'PATROL alert'
     $mailalert.Body = "On $rec_data $usr have attempted to run $scriptname, and he was blocked!"
     $mailalert.Attachments.Add("$workdir\ACCESSI_PATROL.csv")

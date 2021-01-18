@@ -129,14 +129,33 @@ if ($answ -eq "Yes") {
     $formail.AcceptButton = $OKButton
     $formail.Controls.Add($OKButton)
     $result = $formail.ShowDialog()
-
     [System.Windows.MessageBox]::Show("For Gmail accounts: remember to turn off two-factor`nauthentication and allow access to insecure apps",'NOTE','Ok','Info') > $null
+
+    # define recipients of mail alerts
+    $formrec = FormBase -w 400 -h 275 -text "RECIPIENTS"
+    $label = New-Object System.Windows.Forms.Label
+    $label.Location = New-Object System.Drawing.Point(10,20)
+    $label.Size = New-Object System.Drawing.Size(350,30)
+    $label.Text = "List recipients who will receive mail alerts:"
+    $formrec.Controls.Add($label)
+    $reclist = New-Object System.Windows.Forms.textBox
+    $reclist.Multiline = $true
+    $reclist.Scrollbars = "Vertical"
+    $reclist.Location = New-Object System.Drawing.Point(10,50)
+    $reclist.Size = New-Object System.Drawing.Size(350,100)
+    $reclist.Text = $addressbox.Text
+    $reclist.AcceptsReturn = $true
+    $formrec.Controls.Add($reclist)
+    OKButton -form $formrec -x 100 -y 175 -text "Ok"
+    $formrec.Add_Shown({$reclist.Select()})
+    $result = $formrec.ShowDialog()    
 }
 $usrmail = $addressbox.Text
 $pwdmail = $passwdbox.Text
 $smtpsrv = $smtpbox.Text
 $smtpport = $portbox.Text
 $smtpssl = $sslbox.Checked
+$recipients = $reclist.Text -replace "`r`n",';'
 
 # updating scripts
 $filelist = ('Patrol.ps1', 'UpdateDB.ps1')
@@ -152,6 +171,7 @@ if ($answ -eq "Yes") {
     ((Get-Content -path $fullname -Raw) -replace 'PATROLpwdmail',$pwdmail) | Set-Content -Path $fullname
     ((Get-Content -path $fullname -Raw) -replace 'PATROLsmtp',$smtpsrv) | Set-Content -Path $fullname
     ((Get-Content -path $fullname -Raw) -replace 'PATROLport',$smtpport) | Set-Content -Path $fullname
+    ((Get-Content -path $fullname -Raw) -replace 'PATROLrecipients',$recipients) | Set-Content -Path $fullname
     if ($smtpssl) {
         ((Get-Content -path $fullname -Raw) -replace 'PATROLssl','ok') | Set-Content -Path $fullname
     }
