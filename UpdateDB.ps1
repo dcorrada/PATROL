@@ -1,6 +1,6 @@
 <#
 Name......: UpdateDB.ps1
-Version...: 21.1.b
+Version...: 23.1.a
 Author....: Dario CORRADA
 
 This script manage Patrol DB
@@ -21,7 +21,7 @@ Add-Type -AssemblyName PresentationFramework
 
 # import modules
 Import-Module -Name "$workdir\Modules\Forms.psm1"
-Import-Module -Name "$workdir\Modules\FileCryptography.psm1"
+Import-Module -Name "$workdir\Modules\Gordian.psm1"
 
 function RetryButton {
     param ($form, $x, $y, $text)
@@ -49,6 +49,11 @@ if ($status -ne "granted") {
 } else {
     Write-Host -ForegroundColor GREEN "Access for $usr $status"
 }  
+
+# files
+$keyfile = $env:LOCALAPPDATA + '\Patrol.key'
+$dbfile = $env:LOCALAPPDATA + '\PatrolDB.encrypted'
+$tempusfile = "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
 
 # dialog box
 do {
@@ -90,28 +95,18 @@ do {
 
             $string = $scriptBox.Text + ';' + $usrBox.Text
 
-            Copy-Item -Path "$workdir\PatrolDB.csv.AES" -Destination "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
-            $stringa = 'patrolcryptokey'
-            $key = ConvertTo-SecureString $stringa -AsPlainText -Force
-            Unprotect-File "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES" -Algorithm AES -Key $key -RemoveSource
+            $filecontent = (DecryptFile -keyfile "$keyfile" -infile "$dbfile").Split(" ")
+            foreach ($newline in $filecontent) {
+                $newline | Out-File "$tempusfile" -Append
+            }
+            $string | Out-File "$tempusfile" -Append
 
-            $string | Out-File "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv" -Encoding ASCII -Append
-
-            $stringa = 'patrolcryptokey'
-            $key = ConvertTo-SecureString $stringa -AsPlainText -Force
-            Protect-File "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv" -Algorithm AES -Key $key -RemoveSource
-            Remove-Item -Path "$orkdir\PatrolDB.csv.AES"
-            Copy-Item -Path "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES" -Destination "$workdir\PatrolDB.csv.AES"
-            Remove-Item -Path "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
+            EncryptFile -keyfile "$keyfile" -infile "$tempusfile" -outfile "$dbfile" | Out-Null
         }
 
         if ($check_user.Checked) {
-            Copy-Item -Path "$workdir\PatrolDB.csv.AES" -Destination "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
-            $stringa = 'patrolcryptokey'
-            $key = ConvertTo-SecureString $stringa -AsPlainText -Force
-            Unprotect-File "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES" -Algorithm AES -Key $key -RemoveSource
+            $filecontent = (DecryptFile -keyfile "$keyfile" -infile "$dbfile").Split(" ")
 
-            $filecontent = Get-Content -Path "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv"
             $lista_utenti = @()
             foreach ($newline in $filecontent) {
                 ($script, $utente) = $newline.Split(';')
@@ -149,17 +144,11 @@ do {
             }
             Write-Host -ForegroundColor Cyan "Script avalaible for $selected"
             $lista_risultato | sort
-                
-            Remove-Item -Path "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv"
         }
 
         if ($check_script.Checked) {
-            Copy-Item -Path "$workdir\PatrolDB.csv.AES" -Destination "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
-            $stringa = 'patrolcryptokey'
-            $key = ConvertTo-SecureString $stringa -AsPlainText -Force
-            Unprotect-File "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES" -Algorithm AES -Key $key -RemoveSource
+            $filecontent = (DecryptFile -keyfile "$keyfile" -infile "$dbfile").Split(" ")
 
-            $filecontent = Get-Content -Path "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv"
             $lista_script = @()
             foreach ($newline in $filecontent) {
                 ($script, $utente) = $newline.Split(';')
@@ -197,8 +186,6 @@ do {
             }
             Write-Host -ForegroundColor Cyan "Users granted to run $selected"
             $lista_risultato | sort
-
-            Remove-Item -Path "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv"
         }
 
         if ($importa.Checked) {
@@ -210,23 +197,15 @@ do {
             $OpenFileDialog.ShowDialog() | Out-Null
             $infile = $OpenFileDialog.filename
     
-            Copy-Item -Path $infile -Destination "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv"
-            $stringa = 'patrolcryptokey'
-            $key = ConvertTo-SecureString $stringa -AsPlainText -Force
-            Protect-File "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv" -Algorithm AES -Key $key -RemoveSource
-            Remove-Item -Path "$workdir\PatrolDB.csv.AES"
-            Copy-Item -Path "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES" -Destination "$workdir\PatrolDB.csv.AES"
-            Remove-Item -Path "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
+            Copy-Item -Path $infile -Destination "$tempusfile"
+            EncryptFile -keyfile "$keyfile" -infile "$tempusfile" -outfile "$dbfile" | Out-Null
             [System.Windows.MessageBox]::Show("DB imported succesfully",'PATROL DB','Ok','Info') > $null
     
         }
     
         if ($esporta.Checked) {
             Write-Host "Export database..."
-            Copy-Item -Path "$workdir\PatrolDB.csv.AES" -Destination "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
-            $stringa = 'patrolcryptokey'
-            $key = ConvertTo-SecureString $stringa -AsPlainText -Force
-            Unprotect-File "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES" -Algorithm AES -Key $key -RemoveSource
+            $filecontent = (DecryptFile -keyfile "$keyfile" -infile "$dbfile").Split(" ")
     
             $SaveFileDialog = New-Object System.Windows.Forms.SaveFileDialog
             $SaveFileDialog.initialDirectory = "C:\Users\$env:USERNAME\Desktop"
@@ -234,7 +213,9 @@ do {
             $SaveFileDialog.filename = $filename
             $SaveFileDialog.ShowDialog() | Out-Null
             $outfile = $SaveFileDialog.filename
-            Move-Item -Path "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv" -Destination $outfile
+            foreach ($newline in $filecontent) {
+                $newline | Out-File "$outfile" -Append
+            }
     
             [System.Windows.MessageBox]::Show("DB saved as $outfile",'PATROL DB','Ok','Info') > $null
         }

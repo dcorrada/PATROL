@@ -1,6 +1,6 @@
 <#
 Name......: INSTALL.ps1
-Version...: 21.1.b
+Version...: 23.1.a
 Author....: Dario CORRADA
 
 This script will install PATROL
@@ -62,8 +62,9 @@ $result = $forminst.ShowDialog()
 $destpath = $textBox.Text
 
 # creating crypto key
-Import-Module -Name "$workdir\Modules\FileCryptography.psm1"
-$cryptokey = New-CryptographyKey -Algorithm AES -AsPlainText
+Import-Module -Name "$workdir\Modules\Gordian.psm1"
+$keyfile = $env:LOCALAPPDATA + '\Patrol.key'
+CreateKeyFile -keyfile "$keyfile" | Out-Null
 
 # setting mail alert
 $answ = [System.Windows.MessageBox]::Show("Configure for sending mail alerts?",'ALERTS','YesNo','Info')
@@ -162,7 +163,6 @@ $filelist = ('Patrol.ps1', 'UpdateDB.ps1')
 foreach ($infile in $filelist) {
     $fullname = $tmppath + '\' + $infile
     ((Get-Content -path $fullname -Raw) -replace 'patrolinstallpath',$destpath) | Set-Content -Path $fullname
-    ((Get-Content -path $fullname -Raw) -replace 'patrolcryptokey',$cryptokey) | Set-Content -Path $fullname
 }
 if ($answ -eq "Yes") {
     $fullname = $tmppath + '\Patrol.ps1'
@@ -190,10 +190,11 @@ foreach ($infile in $filelist) {
 
 # Creating encrypted DB
 $whoami = $env:USERNAME
-"SCRIPT;USER" | Out-File "$tmppath\PatrolDB.csv" -Encoding ASCII -Append
-"UpdateDB;$whoami" | Out-File "$tmppath\PatrolDB.csv" -Encoding ASCII -Append
-$securekey = ConvertTo-SecureString $cryptokey -AsPlainText -Force
-Protect-File "$tmppath\PatrolDB.csv" -Algorithm AES -Key $securekey
+$tempusfile = "$tmppath\PatrolDB.csv"
+"SCRIPT;USER" | Out-File "$tempusfile" -Append
+"UpdateDB;$whoami" | Out-File "$tempusfile" -Append
+$dbfile = $env:LOCALAPPDATA + '\PatrolDB.encrypted'
+EncryptFile -keyfile "$keyfile" -infile "$tempusfile" -outfile "$dbfile" | Out-Null
 
 # Creating access register
 "DATA;USERNAME;SCRIPT;STATUS;NOTES" | Out-File "$tmppath\ACCESSI_PATROL.csv" -Encoding ASCII -Append
@@ -205,7 +206,6 @@ if (!(Test-Path $destpath)) {
 Copy-Item "$tmppath\Modules" -Recurse -Destination $destpath > $null
 Copy-Item "$tmppath\Patrol.exe" -Destination $destpath > $null
 Copy-Item "$tmppath\UpdateDB.exe" -Destination $destpath > $null
-Copy-Item "$tmppath\PatrolDB.csv.AES" -Destination $destpath > $null
 Copy-Item "$tmppath\ACCESSI_PATROL.csv" -Destination $destpath > $null
 
 # remove temporary directory

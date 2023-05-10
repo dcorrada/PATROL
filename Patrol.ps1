@@ -2,7 +2,7 @@
 
 <#
 Name......: Patrol.ps1
-Version...: 21.1.b
+Version...: 23.1.a
 Author....: Dario CORRADA
 
 This script is the agent that check granted access
@@ -23,7 +23,7 @@ Add-Type -AssemblyName PresentationFramework
 
 # import modules
 Import-Module -Name "$workdir\Modules\Forms.psm1"
-Import-Module -Name "$workdir\Modules\FileCryptography.psm1"
+Import-Module -Name "$workdir\Modules\Gordian.psm1"
 
 # get credentials
 $form_PWD = New-Object System.Windows.Forms.Form
@@ -87,16 +87,15 @@ $pwd_clear = $MaskedTextBox.Text
 $pwd = ConvertTo-SecureString $MaskedTextBox.Text -AsPlainText -Force
 $credit = New-Object System.Management.Automation.PSCredential($usr, $pwd)
 $accessdesc = 'null'
-    
+
+# files
+$keyfile = $env:LOCALAPPDATA + '\Patrol.key'
+$dbfile = $env:LOCALAPPDATA + '\PatrolDB.encrypted'
+
 [reflection.assembly]::LoadWithPartialName("System.DirectoryServices.AccountManagement") > $null
 $principalContext = [System.DirectoryServices.AccountManagement.PrincipalContext]::new([System.DirectoryServices.AccountManagement.ContextType]'Machine',$env:COMPUTERNAME)
 if ($principalContext.ValidateCredentials($fullname,$MaskedTextBox.Text)) { # check credentials
-    Copy-Item -Path "$workdir\PatrolDB.csv.AES" -Destination "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES"
-    $stringa = 'patrolcryptokey'
-    $chiave = ConvertTo-SecureString $stringa -AsPlainText -Force
-    Unprotect-File "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv.AES" -Algorithm AES -Key $chiave -RemoveSource > $null
-
-    $filecontent = Get-Content -Path "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv"
+    $filecontent = (DecryptFile -keyfile "$keyfile" -infile "$dbfile").Split(" ")
     $allowed = @()
     foreach ($newline in $filecontent) {
         ($script, $utente) = $newline.Split(';')
@@ -104,8 +103,6 @@ if ($principalContext.ValidateCredentials($fullname,$MaskedTextBox.Text)) { # ch
             $allowed += $utente
         }
     }
-    
-    Remove-Item -Path "C:\Users\$env:USERNAME\Desktop\PatrolDB.csv"
 
     if ($allowed -contains 'everyone') { 
         $status = 'granted'
